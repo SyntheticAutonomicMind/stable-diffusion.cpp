@@ -238,6 +238,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Lowercase image name for Docker compatibility
+        run: echo "IMAGE_NAME=${{ env.IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]' >> "$GITHUB_ENV"
+
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
