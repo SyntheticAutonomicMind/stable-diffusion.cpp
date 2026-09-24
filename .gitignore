@@ -23,3 +23,7 @@ preview.png
 CLAUDE.local.md
 .agents/
 .codex/
+
+# CLIO (managed automatically)
+.clio/*
+!.clio/instructions.md
