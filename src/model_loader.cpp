@@ -431,10 +431,10 @@ bool ModelLoader::init_from_diffusers_file(const std::string& file_path, const s
     if (file_exists(vae_path) && !parse_file(vae_path, prefix + "vae.")) {
         return false;
     }
-    if (file_exists(clip_path) && !parse_file(clip_path, prefix + "te.")) {
+    if (file_exists(clip_path) && !parse_file(clip_path, prefix + "cond_stage_model.transformer.")) {
         return false;
     }
-    if (file_exists(clip_g_path) && !parse_file(clip_g_path, prefix + "te.1.")) {
+    if (file_exists(clip_g_path) && !parse_file(clip_g_path, prefix + "cond_stage_model.1.transformer.")) {
         return false;
     }
     return true;
