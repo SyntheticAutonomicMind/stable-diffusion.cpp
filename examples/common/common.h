@@ -148,6 +148,7 @@ struct SDContextParams {
     std::string embedding_dir;
     std::string photo_maker_path;
     std::string pulid_weights_path;
+    std::string model_type;  // Manual model version override (sd1, sd2, sdxl, flux, etc.)
     sd_type_t wtype = SD_TYPE_COUNT;
     std::string tensor_type_rules;
     std::string lora_model_dir = ".";

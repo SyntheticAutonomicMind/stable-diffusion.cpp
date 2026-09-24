@@ -230,6 +230,7 @@ typedef struct {
     enum rng_type_t sampler_rng_type;
     enum prediction_t prediction;
     enum lora_apply_mode_t lora_apply_mode;
+    int version_override;  // SDVersion enum value, VERSION_COUNT = auto-detect
     bool enable_mmap;
     bool flash_attn;
     bool diffusion_flash_attn;

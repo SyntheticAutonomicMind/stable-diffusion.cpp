@@ -8,6 +8,7 @@
 
 #include "core/ggml_extend.h"
 #include "core/util.h"
+#include "model.h"
 #include "pipeline/diffusion_engine.h"
 #include "pipeline/generation.h"
 #include "pipeline/request.h"
@@ -336,6 +337,7 @@ void sd_ctx_params_init(sd_ctx_params_t* sd_ctx_params) {
     sd_ctx_params->sampler_rng_type          = RNG_TYPE_COUNT;
     sd_ctx_params->prediction                = PREDICTION_COUNT;
     sd_ctx_params->lora_apply_mode           = LORA_APPLY_AUTO;
+    sd_ctx_params->version_override          = VERSION_COUNT;  // Auto-detect
     sd_ctx_params->max_vram                  = nullptr;
     sd_ctx_params->disable_prefetch          = false;
     sd_ctx_params->disable_segmented_compute = false;
@@ -391,6 +393,7 @@ char* sd_ctx_params_to_str(const sd_ctx_params_t* sd_ctx_params) {
              "rng_type: %s\n"
              "sampler_rng_type: %s\n"
              "prediction: %s\n"
+             "version_override: %d\n"
              "max_vram: %s\n"
              "disable_prefetch: %s\n"
              "disable_segmented_compute: %s\n"
@@ -434,6 +437,7 @@ char* sd_ctx_params_to_str(const sd_ctx_params_t* sd_ctx_params) {
              sd_rng_type_name(sd_ctx_params->rng_type),
              sd_rng_type_name(sd_ctx_params->sampler_rng_type),
              sd_prediction_name(sd_ctx_params->prediction),
+             sd_ctx_params->version_override,
              SAFE_STR(sd_ctx_params->max_vram),
              BOOL_STR(sd_ctx_params->disable_prefetch),
              BOOL_STR(sd_ctx_params->disable_segmented_compute),

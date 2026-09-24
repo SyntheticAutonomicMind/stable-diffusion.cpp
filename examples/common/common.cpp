@@ -22,6 +22,7 @@
 #endif  // _WIN32
 
 #include "log.h"
+#include "../../src/model.h"  // For SDVersion enum (--model-type parser)
 #include "media_io.h"
 #include "resource_owners.hpp"
 
@@ -403,6 +404,11 @@ ArgOptions SDContextParams::get_options() {
          "path to full model",
          0,
          &model_path},
+        {"",
+         "--model-type",
+         "force model type (sd1, sd2, sdxl, flux, sdxl_inpaint, etc). Auto-detect if not specified.",
+         0,
+         &model_type},
         {"",
          "--clip_l",
          "path to the clip-l text encoder",
@@ -969,6 +975,7 @@ std::string SDContextParams::to_string() const {
         << "  n_threads: " << n_threads << ",\n"
         << "  conditioning_cache_size: " << conditioning_cache_size << ",\n"
         << "  model_path: \"" << model_path << "\",\n"
+        << "  model_type: \"" << model_type << "\",\n"
         << "  clip_l_path: \"" << clip_l_path << "\",\n"
         << "  clip_g_path: \"" << clip_g_path << "\",\n"
         << "  clip_vision_path: \"" << clip_vision_path << "\",\n"
@@ -1037,6 +1044,37 @@ sd_ctx_params_t SDContextParams::to_sd_ctx_params_t() {
         embedding_vec.emplace_back(item);
     }
 
+    // Parse model_type string to SDVersion enum
+    int version_override = VERSION_COUNT;  // Auto-detect by default
+    if (!model_type.empty()) {
+        std::string mt = model_type;
+        std::transform(mt.begin(), mt.end(), mt.begin(), ::tolower);
+
+        if (mt == "sd1" || mt == "sd1.5" || mt == "sd1.x") {
+            version_override = VERSION_SD1;
+        } else if (mt == "sd1_inpaint") {
+            version_override = VERSION_SD1_INPAINT;
+        } else if (mt == "sd2" || mt == "sd2.0" || mt == "sd2.1" || mt == "sd2.x") {
+            version_override = VERSION_SD2;
+        } else if (mt == "sd2_inpaint") {
+            version_override = VERSION_SD2_INPAINT;
+        } else if (mt == "sdxl" || mt == "sdxl1.0") {
+            version_override = VERSION_SDXL;
+        } else if (mt == "sdxl_inpaint") {
+            version_override = VERSION_SDXL_INPAINT;
+        } else if (mt == "sdxl_pix2pix") {
+            version_override = VERSION_SDXL_PIX2PIX;
+        } else if (mt == "flux" || mt == "flux1") {
+            version_override = VERSION_FLUX;
+        } else if (mt == "sd3" || mt == "sd3.5") {
+            version_override = VERSION_SD3;
+        } else if (mt == "svd") {
+            version_override = VERSION_SVD;
+        } else {
+            fprintf(stderr, "Warning: Unknown model type '%s', using auto-detect\n", model_type.c_str());
+        }
+    }
+
     sd_ctx_params_t sd_ctx_params;
     sd_ctx_params_init(&sd_ctx_params);
     sd_ctx_params.model_path                      = model_path.c_str();
@@ -1070,6 +1108,7 @@ sd_ctx_params_t SDContextParams::to_sd_ctx_params_t() {
     sd_ctx_params.sampler_rng_type                = sampler_rng_type;
     sd_ctx_params.prediction                      = prediction;
     sd_ctx_params.lora_apply_mode                 = lora_apply_mode;
+    sd_ctx_params.version_override                = version_override;  // Manual version override or VERSION_COUNT for auto-detect
     sd_ctx_params.enable_mmap                     = enable_mmap;
     sd_ctx_params.flash_attn_mode                 = flash_attn_mode.c_str();
     sd_ctx_params.conv_direct_mode                = conv_direct_mode.c_str();

@@ -222,11 +222,16 @@ bool StableDiffusionGGML::apply_model_update(ModelLoader candidate,
                                              std::unique_ptr<ModelConfig> next_config,
                                              RunnerGroups groups) {
     const SDVersion next_version = candidate.get_sd_version();
-    if (next_version == VERSION_COUNT) {
+    SDVersion resolved_version = next_version;
+    if (config_ && config_->params.version_override != VERSION_COUNT) {
+        resolved_version = (SDVersion)config_->params.version_override;
+        LOG_INFO("Version overridden to: %s", sd_version_name(resolved_version));
+    }
+    if (resolved_version == VERSION_COUNT) {
         LOG_ERROR("cannot identify updated diffusion model");
         return false;
     }
-    if (!runner_state_.ready || next_version != version) {
+    if (!runner_state_.ready || resolved_version != version) {
         groups = all_runner_groups();
     } else {
         for (const auto& entry : runner_components()) {
@@ -255,7 +260,7 @@ bool StableDiffusionGGML::apply_model_update(ModelLoader candidate,
     if (next_config) {
         config_ = std::move(next_config);
     }
-    version = next_version;
+    version = resolved_version;
     if (!build_runners(groups)) {
         reset_runners(all_runner_groups());
         return false;
@@ -968,6 +973,10 @@ bool StableDiffusionGGML::init(const sd_ctx_params_t* sd_ctx_params) {
     }
 
     version = model_loader.get_sd_version();
+    if (sd_ctx_params->version_override != VERSION_COUNT) {
+        version = (SDVersion)sd_ctx_params->version_override;
+        LOG_INFO("Version overridden to: %s", sd_version_name(version));
+    }
     if (version == VERSION_COUNT) {
         LOG_ERROR("get sd version from file failed: '%s'", SAFE_STR(sd_ctx_params->model_path));
         return false;
